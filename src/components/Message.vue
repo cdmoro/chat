@@ -1,26 +1,41 @@
 <template>
   <div class="message" :class="{ 'mine': message.user.login.username === user.login.username}">
+    <avatar :src="message.user.picture.thumbnail"/>
     <div class="right">
-      <div class="top">
-        <div class="username">{{ message.user.name.first }}</div>
-        <div class="date">{{ message.date | timeAgo }}</div>
-      </div>
-      <div v-for="(message, i) in message.text" :key="i">{{ message }}</div>
+        <reply 
+            v-if="message.reply" 
+            :show="true"
+            :message="message.reply"
+            in-message
+        />
+        <div class="top">
+            <div class="username">{{ message.user.name.first }}</div>
+            <div class="date">{{ message.date | timeAgo }}</div>
+            <div class="reply-btn button button-icon" title="Reply this message!" @click="$emit('reply', message)">
+                <eva-icon height="18" name="undo"/>
+            </div>
+        </div>
+        <div v-for="(message, i) in message.text" :key="i">{{ message }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatRelative } from "date-fns";
+import { formatRelative } from "date-fns"
+import Avatar from "./Avatar"
+import Reply from './Reply'
 
 export default {
   props: {
     message: { type: Object, required: true },
     user: { type: Object, required: true }
   },
+  components: {
+    Avatar, Reply
+  },
   filters: {
     timeAgo(dateMsg) {
-      return formatRelative(dateMsg, new Date());
+      return formatRelative(dateMsg, new Date())
     }
   }
 };
@@ -30,8 +45,8 @@ export default {
 .message {
   display: flex;
   padding: 10px;
-  margin: 5px 10px;
-  /*color: white;*/
+  margin: 5px;
+  position: relative;
 }
 
 .message.mine {
@@ -47,12 +62,12 @@ export default {
   margin-bottom: 5px;
   display: flex;
   align-items: start;
-  justify-content: space-between;
 }
 
 .message .username {
   font-size: 1.1rem;
   font-weight: bold;
+  flex: 1;
 }
 
 .message .date {
@@ -60,24 +75,11 @@ export default {
   opacity: 0.7;
 }
 
-/*.message {
-	position: relative;
-	background: #00aabb;
-	border-radius: .3em;
+.message .reply-btn {
+    display: none;
 }
 
-.message:after {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 50%;
-	width: 0;
-	height: 0;
-	border: 14px solid transparent;
-	border-right-color: #00aabb;
-	border-left: 0;
-	border-top: 0;
-	margin-top: -7px;
-	margin-left: -14px;
-}*/
+.message:hover .reply-btn {
+    display: inline;
+}
 </style>

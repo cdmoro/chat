@@ -1,22 +1,38 @@
 <template>
-  <div class="chat">
-    <header>
-      <div class="title">{{ buddyTitle }}</div>
-    </header>
-    <div class="body" ref="body" :class="{ 'is-empty': messages.length == 0 }">
-      <div v-if="messages.length == 0">
-        <div>Oh, Don't be shy</div>
-        <button class="button" @click="sayHi">Say hi with style</button>
-      </div>
-      <template v-else>
-        <transition-group name="slide-down" tag="div">
-          <message v-for="(message, i) in messages" :key="'m'+i" :message="message" :user="user"/>
-        </transition-group>
-        <div class="is-typing" v-show="activeUsers">
-          <eva-icon name="message-circle"/>
-          {{ activeUsers }} is typing...
+    <div class="chat">
+        <header class="bg-special">
+            <avatar v-if="buddy" :src="buddy.picture.thumbnail"/>
+            <div class="title">{{ buddyTitle }}</div>
+        </header>
+        <div class="body" ref="body" :class="{ 'is-empty': messages.length == 0 }">
+            <div 
+                v-if="messages.length == 0"
+                class="no-messages"
+            >
+            <div>Oh, Don't be shy</div>
+            <button 
+                class="button" 
+                @click="sayHi"
+                :disabled="user === null"
+            >
+                Say hi with style
+            </button>
         </div>
-      </template>
+        <template v-else>
+            <transition-group name="slide-down" tag="div">
+                <message 
+                    v-for="(message, i) in messages" 
+                    :key="'m'+i" 
+                    :message="message" 
+                    :user="user"
+                    @reply="replyMessage"
+                />
+            </transition-group>
+            <div class="is-typing" v-show="activeUsers">
+                <eva-icon name="message-circle"/>
+                {{ activeUsers }} is typing...
+            </div>
+        </template>
     </div>
     <transition name="scale">
       <button
@@ -28,202 +44,262 @@
         <eva-icon name="message-circle" animation="pulse" fill="white"/>
       </button>
     </transition>
-    <div class="footer">
-      <input
-        type="text"
-        v-model="message"
-        @keyup.enter="newMessage($event.target.value)"
-        placeholder="Start the conversation!"
-      >
+
+    <reply
+        :show="showReply"
+        :message="repliedMessage"
+        @close="showReply = false"
+    />
+
+    <div class="footer bg-special">
+        <input
+            type="text"
+            v-model="message"
+            ref="messageInput"
+            @keyup.enter="newMessage(message)"
+            placeholder="Write a message..."
+            :disabled="user === null"
+        >
+        <div 
+            class="button send" 
+            @click="newMessage(message)"
+            :disabled="user === null"
+        >
+            <eva-icon name="arrow-forward" animation="pulse" fill="white"/>
+        </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getFact } from "../services";
-import Message from "./Message";
+import { getFact } from "../services"
+import Avatar from "./Avatar"
+import Message from "./Message"
+import Reply from './Reply'
 
 export default {
-  components: {
-    Message
-  },
-  props: {
-    user: { type: Object, default: () => {} },
-    buddy: { type: Object, default: () => {} }
-  },
-  created() {
-    this.$root.$on("new-message", this.incomingMessagesHandler);
-  },
-  data() {
-    return {
-      message: "",
-      newMessages: false
-    };
-  },
-  watch: {
-    message(newVal) {
-      if (newVal.length > 0)
-        this.$store.commit("setActiveUser", this.user.name.first);
-      else this.$store.commit("removeActiveUser", this.user.name.first);
+    components: {
+        Avatar,
+        Message,
+        Reply
     },
-    activeUsers(newVal) {
-      if (newVal.length > 0 && this.isBottom()) this.scrollToBottom();
+    props: {
+        user: { type: Object, default: null },
+        buddy: { type: Object, default: null }
+    },
+    created() {
+        // Subscription to 'new-message' event
+        this.$root.$on("new-message", this.incomingMessagesHandler)
+    },
+    data() {
+        return {
+            message: "",
+            newMessages: false,
+            showReply: false,
+            repliedMessage: null
+        }
+    },
+    watch: {
+        message(newVal) {
+            if (newVal.length > 0)
+                this.$store.commit("setActiveUser", this.user.name.first)
+            else 
+                this.$store.commit("removeActiveUser", this.user.name.first)
+        },
+        activeUsers(newVal) {
+            if (newVal.length > 0 && this.isBottom()) this.scrollToBottom()
+        }
+    },
+    methods: {
+        scrollToBottom() {
+            this.$nextTick(() => {
+                let body = this.$refs.body
+                body.scrollTop = body.scrollHeight
+                this.newMessages = false
+            })
+        },
+        isBottom() {
+            let body = this.$refs.body
+            return body.scrollHeight - body.scrollTop === body.clientHeight
+        },
+        incomingMessagesHandler(username) {
+            if (username !== this.user.login.username && !this.isBottom())
+                this.newMessages = true
+            else this.scrollToBottom()
+        },
+        newMessage(message) {
+            if (message !== "") {
+                let msgObj = {
+                    user: this.user,
+                    text: [message],
+                    date: new Date(),
+                    reply: this.repliedMessage
+                }
+
+                this.$store.commit("newMessage", msgObj)
+                this.$root.$emit('new-message', this.user.login.username)
+                this.showReply = false
+                this.repliedMessage = null
+                this.message = ""
+                this.scrollToBottom()
+            }
+        },
+        sayHi() {
+            this.newMessage("Hey there! Did you know?")
+            this.newMessage(`${getFact()}?`)
+        },
+        replyMessage(message) {
+            this.showReply = true
+            this.repliedMessage = message
+            this.$refs.messageInput.focus()
+        }
+    },
+    computed: {
+        buddyTitle() {
+            if (this.buddy === null)
+                return 'Loading...'
+            else 
+                return `${this.buddy.name.first} ${this.buddy.name.last}`
+        },
+        activeUsers() {
+            return this.$store.state.activeUsers
+                .filter(user => user !== this.user.name.first)
+                .join(", ")
+        },
+        messages() {
+            return this.$store.state.messages
+        }
     }
-  },
-  methods: {
-    scrollToBottom() {
-      this.$nextTick(() => {
-        let body = this.$refs.body;
-        body.scrollTop = body.scrollHeight;
-        this.newMessages = false;
-      });
-    },
-    isBottom() {
-      let body = this.$refs.body;
-      return body.scrollHeight - body.scrollTop === body.clientHeight;
-    },
-    incomingMessagesHandler(username) {
-      if (username !== this.user.login.username && !this.isBottom())
-        this.newMessages = true;
-      else this.scrollToBottom();
-    },
-    newMessage(message) {
-      if (message !== "") {
-        this.$store.commit("newMessage", {
-          user: this.user,
-          text: [message],
-          date: new Date()
-        });
-        this.$root.$emit("new-message", this.user.login.username);
-        this.message = "";
-        this.scrollToBottom();
-      }
-    },
-    async sayHi() {
-      this.newMessage("Hey there! Did you know?");
-      this.newMessage(`${getFact()}?`);
-    }
-  },
-  computed: {
-    buddyTitle() {
-      return `${this.buddy.name.first} ${this.buddy.name.last}`;
-    },
-    activeUsers() {
-      return this.$store.state.activeUsers
-        .filter(user => user !== this.user.name.first)
-        .join(", ");
-    },
-    messages() {
-      return this.$store.state.messages;
-    }
-  }
-};
+}
 </script>
 
 <style>
 .chat {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas: "header" "body" "footer";
-  position: relative;
-  flex: 1;
-  height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "header" "body" "footer";
+    position: relative;
+
+    height: 75vh;
+    width: 500px;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2),
+        0px 5px 8px 0px rgba(0, 0, 0, 0.14), 0px 1px 14px 0px rgba(0, 0, 0, 0.12);
+    background: #FFF;
 }
 
 @media all and (-ms-high-contrast: none) {
-  .chat {
-    display: -ms-grid;
-    -ms-grid-columns: 1fr;
-    -ms-grid-rows: 80px 1fr 50px;
-  }
+    .chat {
+        display: -ms-grid;
+        -ms-grid-columns: 1fr;
+        -ms-grid-rows: 80px 1fr 50px;
+    }
 }
 
 .chat header {
-  padding: 0.5rem;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  background: tomato;
+    padding: 0.5rem;
+    height: 45px;
+    display: flex;
+    align-items: center;
 }
 
 .chat .title {
-  font-weight: bold;
-  color: white;
-  flex-grow: 1;
+    font-weight: bold;
+    color: white;
+    flex-grow: 1;
 }
 
 .chat .body {
-  background: white;
-  overflow: auto;
-  position: relative;
-  /*display: flex;
-  flex-direction: column;
-  justify-content: end;*/
+    background: white;
+    overflow: auto;
+    position: relative;
 }
 
 .chat .body.is-empty {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .chat .new-messages {
-  position: absolute;
-  bottom: 70px;
-  right: 30px;
+    position: absolute;
+    bottom: 70px;
+    right: 30px;
 }
 
 .chat .footer {
-  display: flex;
-  height: 40px;
-  padding: 0.5rem;
-  background: tomato;
+    display: flex;
+    height: 40px;
+    padding: 0.5rem;
 }
 
 .chat .footer input {
-  width: 100%;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 0.25rem;
-  border: none;
-  color: #FFF;
-  font-size: 1rem;
+    width: 100%;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0.25rem;
+    border: none;
+    color: #FFF;
+    font-size: 1rem;
 }
 
 .chat .footer .btn {
-  align-self: center;
-  padding: 5px 10px;
+    align-self: center;
+    padding: 5px 10px;
 }
 
 .chat header .title {
-  text-transform: capitalize;
+    text-transform: capitalize;
 }
 
 .chat .input-content {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .chat .input-content input {
-  flex: 1;
+    flex: 1;
 }
 
 .chat .to-bottom {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
 }
 
 .chat .is-typing {
-  font-size: 0.9rem;
-  padding: 1rem;
-  color: #666;
-  display: flex;
+    font-size: 0.9rem;
+    padding: 1rem;
+    color: #666;
+    display: flex;
+    align-items: center;
 }
 
 .chat .is-typing i {
-  margin-right: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.chat .button.send {
+    background: none;
+    padding: .5rem .75rem;
+}
+
+.chat .button.send[disabled] {
+    opacity: .5;
+}
+.chat .button.send[disabled]:hover {
+    background: none;
+}
+
+.chat .no-messages {
+    font-size: 1.2rem;
+}
+
+.chat .no-messages .button {
+    margin-top: .5rem;
+    font-size: 1.1rem;
 }
 </style>
