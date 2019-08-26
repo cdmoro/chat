@@ -1,8 +1,49 @@
+body {
+  margin: 0;
+}
+
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  display: flex;
+  height: 100vh;
+}
+
+.button {
+  background: #e518a1;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: background, transform ease 0.5s;
+}
+
+.button:hover {
+  background: #ff3a49;
+  transform: scale(1.1);
+}
+
+.button.circle {
+  border-radius: 50%;
+  padding: 0.6rem 0.7rem;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.5s;
+}
+.slide-down-enter, .slide-down-leave-to /* .list-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.scale-enter-active,
+.scale-leave-active {
+  transition: all 0.25s;
+}
+.scale-enter, .scale-leave-to /* .list-leave-active below version 2.1.8 */ {
+  transform: scale(0.1);
 }
