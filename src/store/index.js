@@ -15,7 +15,8 @@ export default new Vuex.Store({
         let lastMessage = state.messages[state.messages.length - 1];
         if (
           lastMessage.user.login.username === message.user.login.username &&
-          isSameMinute(lastMessage.date, message.date)
+          isSameMinute(lastMessage.date, message.date) &&
+          message.reply === null
         )
           return lastMessage.text.push(message.text[0]);
       }

@@ -1,11 +1,11 @@
 <template>
   <div id="app">
     <transition name="slide-down" appear>
-      <chat-window v-if="user != null" :user="user" :buddy="buddy"/>
+      <chat-window :user="user" :buddy="buddy"/>
     </transition>
 
     <transition name="slide-down" appear>
-      <chat-window v-if="buddy != null" :user="buddy" :buddy="user"/>
+      <chat-window :user="buddy" :buddy="user"/>
     </transition>
   </div>
 </template>
