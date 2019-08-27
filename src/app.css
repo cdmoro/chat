@@ -72,3 +72,19 @@ body {
 .scale-enter, .scale-leave-to /* .list-leave-active below version 2.1.8 */ {
   transform: scale(0.1);
 }
+
+/* Some responsiveness */
+@media (max-width: 768px) {
+  #app {
+    flex-direction: column;
+  }
+
+  .chat {
+    border-radius: 0;
+    width: 100%;
+  }
+
+  #app .chat:first-child {
+    border-bottom: #FFF solid 2px;
+  }
+}
