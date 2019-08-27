@@ -65,7 +65,9 @@
 </template>
 
 <script>
+import { formatRelative } from "date-fns"
 import { getFact } from '../services'
+
 import ChatHeader from './ChatHeader'
 import NewMessagesAlert from './NewMessagesAlert'
 import Message from './Message'
@@ -117,10 +119,11 @@ export default {
             let body = this.$refs.body
             return body.scrollHeight - body.scrollTop === body.clientHeight
         },
-        incomingMessagesHandler(payload) {
-            if (this.allowNotifications && payload.username !== this.user.login.username) {
-                new Notification(payload.firstname, {
-                    body: payload.message
+        incomingMessagesHandler({ user, text, date, reply}) {
+            if (this.allowNotifications && user.login.username !== this.user.login.username) {
+                new Notification(`${user.name.first} (${formatRelative(date, new Date())})`, {
+                    icon: user.picture.thumbnail,
+                    body: text[0]
                 })
             }
 
@@ -138,11 +141,7 @@ export default {
                 }
 
                 this.$store.commit("newMessage", msgObj)
-                this.$root.$emit('new-message', {
-                    username: this.user.login.username,
-                    firstname: this.user.name.first,
-                    message: message
-                })
+                this.$root.$emit('new-message', msgObj)
                 this.showReply = false
                 this.repliedMessage = null
                 this.message = ""
