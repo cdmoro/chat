@@ -7,7 +7,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     messages: [],
-    activeUsers: []
+    activeUsers: [],
+    allowNotifications: false
   },
   mutations: {
     newMessage(state, message) {
@@ -29,6 +30,9 @@ export default new Vuex.Store({
     removeActiveUser(state, firstname) {
       let index = state.activeUsers.indexOf(firstname);
       state.activeUsers.splice(index, 1);
+    },
+    allowNotifications(state) {
+      state.allowNotifications = true
     }
   }
 })

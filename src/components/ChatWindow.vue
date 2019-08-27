@@ -117,8 +117,14 @@ export default {
             let body = this.$refs.body
             return body.scrollHeight - body.scrollTop === body.clientHeight
         },
-        incomingMessagesHandler(username) {
-            if (username !== this.user.login.username && !this.isBottom())
+        incomingMessagesHandler(payload) {
+            if (this.allowNotifications && payload.username !== this.user.login.username) {
+                new Notification(payload.firstname, {
+                    body: payload.message
+                })
+            }
+
+            if (payload.username !== this.user.login.username && !this.isBottom())
                 this.newMessages = true
             else this.scrollToBottom()
         },
@@ -132,7 +138,11 @@ export default {
                 }
 
                 this.$store.commit("newMessage", msgObj)
-                this.$root.$emit('new-message', this.user.login.username)
+                this.$root.$emit('new-message', {
+                    username: this.user.login.username,
+                    firstname: this.user.name.first,
+                    message: message
+                })
                 this.showReply = false
                 this.repliedMessage = null
                 this.message = ""
@@ -157,6 +167,9 @@ export default {
         },
         messages() {
             return this.$store.state.messages
+        },
+        allowNotifications() {
+            return this.$store.state.allowNotifications
         }
     }
 }

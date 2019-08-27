@@ -20,6 +20,13 @@ export default {
     ChatWindow
   },
   async created() {
+    if (("Notification" in window) && Notification.permission !== 'granted') {
+      Notification.requestPermission(permission => {
+        if (permission === 'granted')
+          this.$store.commit('allowNotifications')
+      })
+    }
+
     let users = await getUsers()
     this.user = users[0]
     this.buddy = users[1]
