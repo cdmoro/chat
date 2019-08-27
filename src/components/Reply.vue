@@ -1,8 +1,8 @@
 <template>
   <transition name="slide-down">
-        <div class="reply bg-special" v-if="show" :class="{ 'in-message': inMessage }">
+        <div class="reply" v-if="show" :class="{ 'in-message': inMessage }">
             <div class="reply-header">
-                <strong>Reply to {{ message.user.name.first }}</strong>
+                <strong>{{ message.user.name.first }} said:</strong>
                 <div 
                     v-if="!inMessage"
                     class="button button-icon" 
@@ -32,6 +32,7 @@ export default {
 <style>
 .reply {
     font-size: .8rem;
+    background: #e6199e;
 }
 
 .reply.in-message {

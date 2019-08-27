@@ -1,85 +1,80 @@
 <template>
     <div class="chat">
-        <header class="bg-special">
-            <avatar v-if="buddy" :src="buddy.picture.thumbnail"/>
-            <div class="title">{{ buddyTitle }}</div>
-        </header>
+        <chat-header :buddy="buddy" />
+
         <div class="body" ref="body" :class="{ 'is-empty': messages.length == 0 }">
             <div 
                 v-if="messages.length == 0"
                 class="no-messages"
             >
-            <div>Oh, Don't be shy</div>
-            <button 
-                class="button" 
-                @click="sayHi"
+                <div>Oh, Don't be shy</div>
+                <button 
+                    class="button" 
+                    @click="sayHi"
+                    :disabled="user === null"
+                >
+                    Say hi with style
+                </button>
+            </div>
+            <template v-else>
+                <transition-group name="slide-down" tag="div">
+                    <message 
+                        v-for="(message, i) in messages" 
+                        :key="'m'+i" 
+                        :message="message" 
+                        :user="user"
+                        @reply="replyMessage"
+                    />
+                </transition-group>
+                <div class="is-typing" v-show="activeUsers">
+                    <eva-icon name="message-circle"/>
+                    {{ activeUsers }} is typing...
+                </div>
+            </template>
+        </div>
+    
+        <new-messages-alert
+            :show="newMessages"
+            @click="scrollToBottom"
+        />
+
+        <reply
+            :show="showReply"
+            :message="repliedMessage"
+            @close="showReply = false"
+        />
+
+        <div class="footer bg-special">
+            <input
+                type="text"
+                v-model="message"
+                ref="messageInput"
+                @keyup.enter="newMessage(message)"
+                placeholder="Write a message..."
                 :disabled="user === null"
             >
-                Say hi with style
-            </button>
-        </div>
-        <template v-else>
-            <transition-group name="slide-down" tag="div">
-                <message 
-                    v-for="(message, i) in messages" 
-                    :key="'m'+i" 
-                    :message="message" 
-                    :user="user"
-                    @reply="replyMessage"
-                />
-            </transition-group>
-            <div class="is-typing" v-show="activeUsers">
-                <eva-icon name="message-circle"/>
-                {{ activeUsers }} is typing...
+            <div 
+                class="button send" 
+                @click="newMessage(message)"
+                :disabled="user === null"
+            >
+                <eva-icon name="arrow-forward" animation="pulse" fill="white"/>
             </div>
-        </template>
-    </div>
-    <transition name="scale">
-      <button
-        v-show="newMessages"
-        class="button circle new-messages"
-        title="You have new messages!"
-        @click="scrollToBottom"
-      >
-        <eva-icon name="message-circle" animation="pulse" fill="white"/>
-      </button>
-    </transition>
-
-    <reply
-        :show="showReply"
-        :message="repliedMessage"
-        @close="showReply = false"
-    />
-
-    <div class="footer bg-special">
-        <input
-            type="text"
-            v-model="message"
-            ref="messageInput"
-            @keyup.enter="newMessage(message)"
-            placeholder="Write a message..."
-            :disabled="user === null"
-        >
-        <div 
-            class="button send" 
-            @click="newMessage(message)"
-            :disabled="user === null"
-        >
-            <eva-icon name="arrow-forward" animation="pulse" fill="white"/>
         </div>
-    </div>
   </div>
 </template>
 
 <script>
-import { getFact } from "../services"
-import Avatar from "./Avatar"
-import Message from "./Message"
+import { getFact } from '../services'
+import ChatHeader from './ChatHeader'
+import NewMessagesAlert from './NewMessagesAlert'
+import Message from './Message'
 import Reply from './Reply'
 
 export default {
     components: {
-        Avatar,
+        ChatHeader,
+        NewMessagesAlert,
         Message,
         Reply
     },
@@ -155,12 +150,6 @@ export default {
         }
     },
     computed: {
-        buddyTitle() {
-            if (this.buddy === null)
-                return 'Loading...'
-            else 
-                return `${this.buddy.name.first} ${this.buddy.name.last}`
-        },
         activeUsers() {
             return this.$store.state.activeUsers
                 .filter(user => user !== this.user.name.first)
@@ -183,7 +172,7 @@ export default {
 
     height: 75vh;
     width: 500px;
-    border-radius: 0.35rem;
+    border-radius: 0.25rem;
     overflow: hidden;
     box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2),
         0px 5px 8px 0px rgba(0, 0, 0, 0.14), 0px 1px 14px 0px rgba(0, 0, 0, 0.12);
@@ -196,19 +185,6 @@ export default {
         -ms-grid-columns: 1fr;
         -ms-grid-rows: 80px 1fr 50px;
     }
-}
-
-.chat header {
-    padding: 0.5rem;
-    height: 45px;
-    display: flex;
-    align-items: center;
-}
-
-.chat .title {
-    font-weight: bold;
-    color: white;
-    flex-grow: 1;
 }
 
 .chat .body {

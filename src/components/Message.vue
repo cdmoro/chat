@@ -50,7 +50,7 @@ export default {
 }
 
 .message.mine {
-  background: #F1F1F1;
+  background: rgba(0, 0, 0, .12);
   border-radius: 0.25rem;
 }
 
