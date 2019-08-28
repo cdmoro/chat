@@ -1,6 +1,6 @@
 <template>
     <header class="bg-special">
-        <avatar v-if="buddy" :src="buddy.picture.thumbnail"/>
+        <avatar v-if="buddy" :src="buddy.picture.medium"/>
         <div class="title">{{ buddyTitle }}</div>
     </header>
 </template>

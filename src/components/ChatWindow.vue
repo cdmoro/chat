@@ -119,15 +119,15 @@ export default {
             let body = this.$refs.body
             return body.scrollHeight - body.scrollTop === body.clientHeight
         },
-        incomingMessagesHandler({ user, text, date, reply}) {
+        incomingMessagesHandler({ user, text, date, reply }) {
             if (this.allowNotifications && user.login.username !== this.user.login.username) {
                 new Notification(`${user.name.first} (${formatRelative(date, new Date())})`, {
-                    icon: user.picture.thumbnail,
+                    icon: user.picture.large,
                     body: text[0]
                 })
             }
 
-            if (payload.username !== this.user.login.username && !this.isBottom())
+            if (user.login.username !== this.user.login.username && !this.isBottom())
                 this.newMessages = true
             else this.scrollToBottom()
         },

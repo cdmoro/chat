@@ -1,6 +1,6 @@
 <template>
   <div class="message" :class="{ 'mine': message.user.login.username === user.login.username}">
-    <avatar :src="message.user.picture.thumbnail"/>
+    <avatar :src="message.user.picture.medium"/>
     <div class="right">
         <reply 
             v-if="message.reply" 

@@ -33,6 +33,8 @@ export default {
 .reply {
     font-size: .8rem;
     background: #e6199e;
+    -webkit-clip-path: polygon(5% 0%, 100% 0, 100% 100%, 0 100%, 0% 20%);
+    clip-path: polygon(5% 0%, 100% 0, 100% 100%, 0 100%, 0% 20%);
 }
 
 .reply.in-message {
@@ -40,6 +42,8 @@ export default {
     border-radius: .25rem;
     margin-bottom: .5rem;
     background: #ff3a4922;
+    -webkit-clip-path: none;
+    clip-path: none;
 }
 
 .reply .reply-header {
@@ -48,6 +52,7 @@ export default {
     justify-content: space-between;
     align-items: center;
     padding: .5rem .5rem .25rem;
+    margin-left: 1rem;
 }
 
 .reply.in-message .reply-header {
