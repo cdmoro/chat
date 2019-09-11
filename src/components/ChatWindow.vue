@@ -119,7 +119,7 @@ export default {
             let body = this.$refs.body
             return body.scrollHeight - body.scrollTop === body.clientHeight
         },
-        incomingMessagesHandler({ user, text, date, reply }) {
+        incomingMessagesHandler({ user, text, date }) {
             if (this.allowNotifications && user.login.username !== this.user.login.username) {
                 new Notification(`${user.name.first} (${formatRelative(date, new Date())})`, {
                     icon: user.picture.large,

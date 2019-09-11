@@ -12,7 +12,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .avatar {
   border-radius: 50%;
   width: 45px;

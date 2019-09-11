@@ -1,7 +1,7 @@
 <template>
-    <header class="bg-special">
+    <header class="header bg-special">
         <avatar v-if="buddy" :src="buddy.picture.thumbnail"/>
-        <div class="title">{{ buddyTitle }}</div>
+        <div class="header__title">{{ buddyTitle }}</div>
     </header>
 </template>
 
@@ -26,7 +26,21 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+    .header {
+        padding: 0.5rem;
+        height: 45px;
+        display: flex;
+        align-items: center;    
+
+        &__title {
+            font-weight: bold;
+            color: white;
+            flex-grow: 1;    
+        }
+    }
+
+
 .chat header {
     padding: 0.5rem;
     height: 45px;
@@ -34,7 +48,7 @@ export default {
     align-items: center;
 }
 
-.chat .title {
+.chat header .title {
     font-weight: bold;
     color: white;
     flex-grow: 1;
